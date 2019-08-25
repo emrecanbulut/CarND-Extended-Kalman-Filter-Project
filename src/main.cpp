@@ -40,7 +40,10 @@ int main() {
   vector<VectorXd> estimations;
   vector<VectorXd> ground_truth;
 
-  h.onMessage([&fusionEKF,&tools,&estimations,&ground_truth]
+  VectorXd greatestRMSE(4);
+  greatestRMSE << 0,0,0,0;
+
+  h.onMessage([&fusionEKF,&tools,&estimations,&ground_truth, &greatestRMSE]
               (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
                uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -128,7 +131,14 @@ int main() {
           estimations.push_back(estimate);
 
           VectorXd RMSE = tools.CalculateRMSE(estimations, ground_truth);
-
+          if(RMSE(0) > greatestRMSE(0) || RMSE(1) > greatestRMSE(1)){
+            greatestRMSE = RMSE;
+            std::cout << "GreatestRMSE" << std::endl;
+          }
+          std::cout << "GroundTruth values:" << gt_values(0) << "," << gt_values(1) << ","
+                                      << gt_values(2) << "," << gt_values(3) << std::endl;
+          std::cout << "RMSE:" << RMSE(0) << "," << RMSE(1) << ","
+                                      << RMSE(2) << "," << RMSE(3) << std::endl;
           json msgJson;
           msgJson["estimate_x"] = p_x;
           msgJson["estimate_y"] = p_y;
