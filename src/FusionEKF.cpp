@@ -49,6 +49,8 @@ FusionEKF::FusionEKF() {
 
   // Initial transition Matrix
   ekf_.F_ = MatrixXd::Identity(4,4);
+  ekf_.F_(0,2) = 1;
+  ekf_.F_(1,3) = 1;
 }
 
 /**
@@ -85,9 +87,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
       float x = rho * cos(phi);
       float y = rho * sin(phi);
-      float v_x = rhodot * cos(phi);
-      float v_y = rhodot * sin(phi);
-
+      float rhodot_x = rhodot * cos(phi);
+      float rhodot_y = rhodot * sin(phi);
+      float v_x = rhodot_x * 1.2; // all I know is that V's magnitude is greater than rhodot's.
+      float v_y = rhodot_y * 1.2; // so this should relatively be a better estimate...
       ekf_.x_ << x, y, v_x, v_y;
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
@@ -97,7 +100,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
                 0, 
                 0;
     }
-    cout << "NOT INITIALIZED:" << endl;
+    cout << "AFTER INITIALIZATION:" << endl;
     cout << "x_ = " << endl << ekf_.x_ << endl;
     cout << "P_ = " << endl << ekf_.P_ << endl;
     // done initializing, no need to predict or update
@@ -127,7 +130,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   ekf_.F_(0, 2) = dt;
   ekf_.F_(1, 3) = dt;
 
-    // set the process covariance matrix Q
+  // set the process covariance matrix Q
   uint8_t noise_ax = 9;
   uint8_t noise_ay = 9;
 

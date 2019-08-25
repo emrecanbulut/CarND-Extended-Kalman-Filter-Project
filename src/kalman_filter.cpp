@@ -62,6 +62,11 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   hx << rho, phi, rho_dot;
   VectorXd y = z - hx;
 
+  // -PI < phi < +PI
+  // Without this normalization, between time step 272-280, EKF's state is totally off.. 
+  while(y(1) < -M_PI) y(1) += 2 * M_PI;
+  while(y(1) > M_PI)  y(1) -= 2 * M_PI;
+
   //new estimate
   x_ = x_ + (K * y);
   long x_size = x_.size();
